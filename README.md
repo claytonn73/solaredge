@@ -12,27 +12,27 @@ s = solaredge.Solaredge("APIKEY")
 11 API requests are supported. The methods return the parsed JSON response as a dict.
 
 ```
-def get_list(self, size=100, startIndex=0, searchText="", sortProperty="", sortOrder='ASC', status='Active,Pending'):
+def get_list(self, size=100, start_index=0, search_text="", sort_property="", sort_order='ASC', status='Active,Pending'):
 
 def get_details(self, site_id):
 
-def get_dataPeriod(self, site_id):
+def get_data_period(self, site_id):
 
-def get_energy(self, site_id, startDate, endDate, timeUnit='DAY'):
+def get_energy(self, site_id, start_date, end_date, time_unit='DAY'):
 
-def get_timeFrameEnergy(self, site_id, startDate, endDate, timeUnit='DAY'):
+def get_time_frame_energy(self, site_id, start_date, end_date, time_unit='DAY'):
 
-def get_power(self, site_id, startTime, endTime):
+def get_power(self, site_id, start_time, end_time):
 
 def get_overview(self, site_id):
 
-def get_powerDetails(self, site_id, startTime, endTime, meters=None):
+def get_power_details(self, site_id, start_time, end_time, meters=None):
 
-def get_energyDetails(self, site_id, startTime, endTime, meters=None, timeUnit="DAY"):
+def get_energy_details(self, site_id, start_time, end_time, meters=None, time_unit="DAY"):
 
-def get_currentPowerFlow(self, site_id):
+def get_current_power_flow(self, site_id):
 
-def get_storageData(self, site_id, startTime, endTime, serials=None):
+def get_storage_data(self, site_id, start_time, end_time, serials=None):
 ```
 
 ## TODO

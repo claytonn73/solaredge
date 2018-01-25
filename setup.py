@@ -28,7 +28,7 @@ with open(path.join(here, 'solaredge', 'solaredge.py'), encoding='utf-8') as f:
             __version__ = l.split('"')[1] # take the part after the first "
 
 setup(
-    name='smappy',
+    name='solaredge',
     version=__version__,
     description='A python API wrapper for Solaredge monitoring service',
     long_description=long_description,

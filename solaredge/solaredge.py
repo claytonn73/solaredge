@@ -1,8 +1,4 @@
 import requests
-import datetime as dt
-from functools import wraps
-import pytz
-import numbers
 
 __title__ = "solaredge"
 __version__ = "0.0.1"
@@ -11,7 +7,8 @@ __license__ = "MIT"
 
 BASEURL = 'https://monitoringapi.solaredge.com'
 
-class Solaredge(object):
+
+class Solaredge:
     """
     Object containing SolarEdge's site API-methods.
     See https://www.solaredge.com/sites/default/files/se_monitoring_api.pdf
@@ -27,7 +24,8 @@ class Solaredge(object):
         """
         self.token = site_token
 
-    def get_list(self, size=100, startIndex=0, searchText="", sortProperty="", sortOrder='ASC', status='Active,Pending'):
+    def get_list(self, size=100, start_index=0, search_text="", sort_property="",
+                 sort_order='ASC', status='Active,Pending'):
         """
         Request service locations
 
@@ -41,21 +39,20 @@ class Solaredge(object):
         params = {
             'api_key': self.token,
             'size': size,
-            'startIndex': startIndex,
-            'sortOrder': sortOrder,
+            'startIndex': start_index,
+            'sortOrder': sort_order,
             'status': status
         }
 
-        if searchText:
-            params['searchText'] = searchText
+        if search_text:
+            params['searchText'] = search_text
 
-        if sortProperty:
-            params['sortProperty'] = sortProperty
+        if sort_property:
+            params['sortProperty'] = sort_property
 
         r = requests.get(url, params)
         r.raise_for_status()
         return r.json()
-
 
     def get_details(self, site_id):
         """
@@ -77,8 +74,7 @@ class Solaredge(object):
         r.raise_for_status()
         return r.json()
 
-
-    def get_dataPeriod(self, site_id):
+    def get_data_period(self, site_id):
         """
         Request service location info
 
@@ -98,43 +94,40 @@ class Solaredge(object):
         r.raise_for_status()
         return r.json()
 
-
-    def get_energy(self, site_id, startDate, endDate, timeUnit='DAY'):
+    def get_energy(self, site_id, start_date, end_date, time_unit='DAY'):
         url = urljoin(BASEURL, "site", site_id, "energy")
         params = {
             'api_key': self.token,
-            'startDate': startDate,
-            'endDate': endDate,
-            'timeUnit': timeUnit
+            'startDate': start_date,
+            'endDate': end_date,
+            'timeUnit': time_unit
         }
         r = requests.get(url, params)
         r.raise_for_status()
         return r.json()
 
-    def get_timeFrameEnergy(self, site_id, startDate, endDate, timeUnit='DAY'):
+    def get_time_frame_energy(self, site_id, start_date, end_date, time_unit='DAY'):
         url = urljoin(BASEURL, "site", site_id, "timeFrameEnergy")
         params = {
             'api_key': self.token,
-            'startDate': startDate,
-            'endDate': endDate,
-            'timeUnit': timeUnit
+            'startDate': start_date,
+            'endDate': end_date,
+            'timeUnit': time_unit
         }
         r = requests.get(url, params)
         r.raise_for_status()
         return r.json()
 
-
-    def get_power(self, site_id, startTime, endTime):
+    def get_power(self, site_id, start_time, end_time):
         url = urljoin(BASEURL, "site", site_id, "power")
         params = {
             'api_key': self.token,
-            'startTime': startTime,
-            'endTime': endTime
+            'startTime': start_time,
+            'endTime': end_time
         }
         r = requests.get(url, params)
         r.raise_for_status()
         return r.json()
-
 
     def get_overview(self, site_id):
         url = urljoin(BASEURL, "site", site_id, "overview")
@@ -145,12 +138,12 @@ class Solaredge(object):
         r.raise_for_status()
         return r.json()
 
-    def get_powerDetails(self, site_id, startTime, endTime, meters=None):
+    def get_power_details(self, site_id, start_time, end_time, meters=None):
         url = urljoin(BASEURL, "site", site_id, "powerDetails")
         params = {
             'api_key': self.token,
-            'startTime': startTime,
-            'endTime': endTime
+            'startTime': start_time,
+            'endTime': end_time
         }
 
         if meters:
@@ -160,13 +153,13 @@ class Solaredge(object):
         r.raise_for_status()
         return r.json()
 
-    def get_energyDetails(self, site_id, startTime, endTime, meters=None, timeUnit="DAY"):
+    def get_energy_details(self, site_id, start_time, end_time, meters=None, time_unit="DAY"):
         url = urljoin(BASEURL, "site", site_id, "energyDetails")
         params = {
             'api_key': self.token,
-            'startTime': startTime,
-            'endTime': endTime,
-            'timeUnit': timeUnit
+            'startTime': start_time,
+            'endTime': end_time,
+            'timeUnit': time_unit
         }
 
         if meters:
@@ -176,7 +169,7 @@ class Solaredge(object):
         r.raise_for_status()
         return r.json()
 
-    def get_currentPowerFlow(self, site_id):
+    def get_current_power_flow(self, site_id):
         url = urljoin(BASEURL, "site", site_id, "currentPowerFlow")
         params = {
             'api_key': self.token
@@ -186,12 +179,12 @@ class Solaredge(object):
         r.raise_for_status()
         return r.json()
 
-    def get_storageData(self, site_id, startTime, endTime, serials=None):
+    def get_storage_data(self, site_id, start_time, end_time, serials=None):
         url = urljoin(BASEURL, "site", site_id, "storageData")
         params = {
             'api_key': self.token,
-            'startTime': startTime,
-            'endTime': endTime
+            'startTime': start_time,
+            'endTime': end_time
         }
 
         if serials:
