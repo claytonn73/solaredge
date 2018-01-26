@@ -215,7 +215,8 @@ class Solaredge:
         if not hasattr(self, '_timezones'):
             self._timezones = {}
         if site_id not in self._timezones.keys():
-            self._timezones.update({site_id: self.get_details(site_id=site_id)['details']['location']['timeZone']})
+            tz = self.get_details(site_id=site_id)['details']['location']['timeZone']
+            self._timezones.update({site_id: tz})
         return self._timezones[site_id]
 
 
