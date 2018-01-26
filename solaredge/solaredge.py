@@ -1,5 +1,7 @@
 import requests
 import functools
+import pytz
+import dateutil.parser
 
 __title__ = "solaredge"
 __version__ = "0.0.1"
@@ -77,17 +79,19 @@ class Solaredge:
         r.raise_for_status()
         return r.json()
 
-    def get_data_period(self, site_id):
+    @functools.lru_cache(maxsize=128, typed=False)
+    def get_data_period(self, site_id, parsed=False):
         """
         Request service location info
 
         Parameters
         ----------
         site_id : int
+        parsed : bool
 
         Returns
         -------
-        dict
+        dict | (dt.datetime, dt.datetime)
         """
         url = urljoin(BASEURL, "site", site_id, "dataPeriod")
         params = {
@@ -95,7 +99,14 @@ class Solaredge:
         }
         r = requests.get(url, params)
         r.raise_for_status()
-        return r.json()
+        j = r.json()
+        if not parsed:
+            return j
+        else:
+            tz = pytz.timezone(self.get_timezone(site_id=site_id))
+            start, end = [dateutil.parser.parse(j['dataPeriod'][param]) for param in ['startDate', 'endDate']]
+            start, end = [tz.localize(date) for date in (start, end)]
+            return start, end
 
     def get_energy(self, site_id, start_date, end_date, time_unit='DAY'):
         url = urljoin(BASEURL, "site", site_id, "energy")

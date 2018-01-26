@@ -16,7 +16,7 @@ def get_list(self, size=100, start_index=0, search_text="", sort_property="", so
 
 def get_details(self, site_id):
 
-def get_data_period(self, site_id):
+def get_data_period(self, site_id, parsed=False):
 
 def get_energy(self, site_id, start_date, end_date, time_unit='DAY'):
 
