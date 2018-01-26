@@ -9,7 +9,7 @@ s = solaredge.Solaredge("APIKEY")
 ```
 
 ## API Requests
-11 API requests are supported. The methods return the parsed JSON response as a dict.
+12 API requests are supported. The methods return the parsed JSON response as a dict.
 
 ```
 def get_list(self, size=100, start_index=0, search_text="", sort_property="", sort_order='ASC', status='Active,Pending'):
@@ -33,6 +33,8 @@ def get_energy_details(self, site_id, start_time, end_time, meters=None, time_un
 def get_current_power_flow(self, site_id):
 
 def get_storage_data(self, site_id, start_time, end_time, serials=None):
+
+def get_inventory(self, site_id):
 ```
 
 ## TODO
