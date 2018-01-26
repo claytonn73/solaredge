@@ -1,4 +1,5 @@
 import requests
+import functools
 
 __title__ = "solaredge"
 __version__ = "0.0.1"
@@ -24,6 +25,7 @@ class Solaredge:
         """
         self.token = site_token
 
+    @functools.lru_cache(maxsize=128, typed=False)
     def get_list(self, size=100, start_index=0, search_text="", sort_property="",
                  sort_order='ASC', status='Active,Pending'):
         """
@@ -54,6 +56,7 @@ class Solaredge:
         r.raise_for_status()
         return r.json()
 
+    @functools.lru_cache(maxsize=128, typed=False)
     def get_details(self, site_id):
         """
         Request service location info
@@ -211,13 +214,11 @@ class Solaredge:
         r.raise_for_status()
         return r.json()
 
+    @functools.lru_cache(maxsize=128, typed=False)
     def get_timezone(self, site_id):
-        if not hasattr(self, '_timezones'):
-            self._timezones = {}
-        if site_id not in self._timezones.keys():
-            tz = self.get_details(site_id=site_id)['details']['location']['timeZone']
-            self._timezones.update({site_id: tz})
-        return self._timezones[site_id]
+        details = self.get_details(site_id=site_id)
+        tz = details['details']['location']['timeZone']
+        return tz
 
 
 def urljoin(*parts):
