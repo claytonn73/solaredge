@@ -214,7 +214,6 @@ class Solaredge:
         r.raise_for_status()
         return r.json()
 
-    @functools.lru_cache(maxsize=128, typed=False)
     def get_timezone(self, site_id):
         details = self.get_details(site_id=site_id)
         tz = details['details']['location']['timeZone']
