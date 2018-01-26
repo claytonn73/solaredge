@@ -194,6 +194,15 @@ class Solaredge:
         r.raise_for_status()
         return r.json()
 
+    def get_inventory(self, site_id):
+        url = urljoin(BASEURL, "site", site_id, "inventory")
+        params = {
+            'api_key': self.token
+        }
+        r = requests.get(url, params)
+        r.raise_for_status()
+        return r.json()
+
 
 def urljoin(*parts):
     """
