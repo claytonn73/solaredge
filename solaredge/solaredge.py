@@ -153,7 +153,7 @@ class Solaredge:
         r.raise_for_status()
         return r.json()
 
-    def get_energy_details(self, site_id, start_time, end_time, meters=None, time_unit="DAY"):
+    def get_energy_details(self, site_id, start_time, end_time, meters=None, time_unit="DAY", as_dataframe=False):
         url = urljoin(BASEURL, "site", site_id, "energyDetails")
         params = {
             'api_key': self.token,
@@ -167,7 +167,15 @@ class Solaredge:
 
         r = requests.get(url, params)
         r.raise_for_status()
-        return r.json()
+
+        j = r.json()
+        if not as_dataframe:
+            return j
+        else:
+            from .parsers import parse_energydetails
+            df = parse_energydetails(j)
+            df = df.tz_localize(self.get_timezone(site_id=site_id))
+            return df
 
     def get_current_power_flow(self, site_id):
         url = urljoin(BASEURL, "site", site_id, "currentPowerFlow")
@@ -203,6 +211,13 @@ class Solaredge:
         r.raise_for_status()
         return r.json()
 
+    def get_timezone(self, site_id):
+        if not hasattr(self, '_timezones'):
+            self._timezones = {}
+        if site_id not in self._timezones.keys():
+            self._timezones.update({site_id: self.get_details(site_id=site_id)['details']['location']['timeZone']})
+        return self._timezones[site_id]
+
 
 def urljoin(*parts):
     """
@@ -229,3 +244,4 @@ def urljoin(*parts):
     # join everything together
     url = '/'.join(part_list)
     return url
+

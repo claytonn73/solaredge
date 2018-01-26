@@ -28,7 +28,7 @@ def get_overview(self, site_id):
 
 def get_power_details(self, site_id, start_time, end_time, meters=None):
 
-def get_energy_details(self, site_id, start_time, end_time, meters=None, time_unit="DAY"):
+def get_energy_details(self, site_id, start_time, end_time, meters=None, time_unit="DAY", as_dataframe=False):
 
 def get_current_power_flow(self, site_id):
 
@@ -36,6 +36,8 @@ def get_storage_data(self, site_id, start_time, end_time, serials=None):
 
 def get_inventory(self, site_id):
 ```
+
+`get_energy_details` can also return the result as a Pandas DataFrame
 
 ## TODO
 * Add support for bulk requests
