@@ -81,18 +81,17 @@ class Solaredge:
         return r.json()
 
     @functools.lru_cache(maxsize=128, typed=False)
-    def get_data_period(self, site_id, parsed=False):
+    def get_data_period(self, site_id):
         """
-        Request service location info
+        Request data period
 
         Parameters
         ----------
         site_id : int
-        parsed : bool
 
         Returns
         -------
-        dict | (dt.datetime, dt.datetime)
+        dict
         """
         url = urljoin(BASEURL, "site", site_id, "dataPeriod")
         params = {
@@ -101,13 +100,25 @@ class Solaredge:
         r = requests.get(url, params)
         r.raise_for_status()
         j = r.json()
-        if not parsed:
-            return j
-        else:
-            tz = pytz.timezone(self.get_timezone(site_id=site_id))
-            start, end = [dateutil.parser.parse(j['dataPeriod'][param]) for param in ['startDate', 'endDate']]
-            start, end = start.astimezone(tz), end.astimezone(tz)
-            return start, end
+        return j
+
+    def get_data_period_parsed(self, site_id):
+        """
+        Get data period, parsed in datetime objects
+
+        Parameters
+        ----------
+        site_id : int
+
+        Returns
+        -------
+        (dt.datetime, dt.datetime)
+        """
+        j = self.get_data_period(site_id=site_id)
+        tz = pytz.timezone(self.get_timezone(site_id=site_id))
+        start, end = [dateutil.parser.parse(j['dataPeriod'][param]) for param in ['startDate', 'endDate']]
+        start, end = start.astimezone(tz), end.astimezone(tz)
+        return start, end
 
     def get_energy(self, site_id, start_date, end_date, time_unit='DAY'):
         url = urljoin(BASEURL, "site", site_id, "energy")
@@ -168,7 +179,7 @@ class Solaredge:
         r.raise_for_status()
         return r.json()
 
-    def get_energy_details(self, site_id, start_time, end_time, meters=None, time_unit="DAY", as_dataframe=False):
+    def get_energy_details(self, site_id, start_time, end_time, meters=None, time_unit="DAY"):
         url = urljoin(BASEURL, "site", site_id, "energyDetails")
         params = {
             'api_key': self.token,
@@ -184,13 +195,16 @@ class Solaredge:
         r.raise_for_status()
 
         j = r.json()
-        if not as_dataframe:
-            return j
-        else:
-            from .parsers import parse_energydetails
-            df = parse_energydetails(j)
-            df = df.tz_localize(self.get_timezone(site_id=site_id))
-            return df
+        return j
+
+    def get_energy_details_dataframe(self, site_id, start_time, end_time, meters=None, time_unit="DAY"):
+        from .parsers import parse_energydetails
+        tz = self.get_timezone(site_id=site_id)
+        start_time, end_time = [self._fmt_date(date_obj=time, fmt='%Y-%m-%d %H:%M:%S', tz=tz) for time in [start_time, end_time]]
+        j = self.get_energy_details(site_id=site_id, start_time=start_time, end_time=end_time, meters=meters, time_unit=time_unit)
+        df = parse_energydetails(j)
+        df = df.tz_localize(tz)
+        return df
 
     def get_current_power_flow(self, site_id):
         url = urljoin(BASEURL, "site", site_id, "currentPowerFlow")
