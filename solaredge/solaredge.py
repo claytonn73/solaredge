@@ -2,6 +2,7 @@ import requests
 import functools
 import pytz
 import dateutil.parser
+import datetime as dt
 
 __title__ = "solaredge"
 __version__ = "0.0.1"
@@ -105,7 +106,7 @@ class Solaredge:
         else:
             tz = pytz.timezone(self.get_timezone(site_id=site_id))
             start, end = [dateutil.parser.parse(j['dataPeriod'][param]) for param in ['startDate', 'endDate']]
-            start, end = [tz.localize(date) for date in (start, end)]
+            start, end = start.astimezone(tz), end.astimezone(tz)
             return start, end
 
     def get_energy(self, site_id, start_date, end_date, time_unit='DAY'):
@@ -229,6 +230,34 @@ class Solaredge:
         details = self.get_details(site_id=site_id)
         tz = details['details']['location']['timeZone']
         return tz
+
+    @staticmethod
+    def _fmt_date(date_obj, fmt, tz=None):
+        """
+        Convert any input to a valid datestring of format
+        If you pass a localized datetime, it is converted to tz first
+
+        Parameters
+        ----------
+        date_obj : str | dt.date | dt.datetime
+
+        Returns
+        -------
+        str
+        """
+        if isinstance(date_obj, str):
+            try:
+                dt.datetime.strptime(date_obj, fmt)
+            except ValueError:
+                date_obj = dateutil.parser.parse(date_obj)
+            else:
+                return date_obj
+        if hasattr(date_obj, 'tzinfo') and date_obj.tzinfo is not None:
+            if tz is None:
+                raise ValueError('Please supply a target timezone')
+            date_obj = date_obj.astimezone(tz)
+
+        return date_obj.strftime(fmt)
 
 
 def urljoin(*parts):
