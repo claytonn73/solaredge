@@ -6,7 +6,7 @@ import datetime as dt
 
 __title__ = "solaredge"
 __version__ = "0.0.1"
-__author__ = "Bert Outtier"
+__author__ = "Bert Outtier, EnergieID"
 __license__ = "MIT"
 
 BASEURL = 'https://monitoringapi.solaredge.com'
@@ -14,7 +14,7 @@ BASEURL = 'https://monitoringapi.solaredge.com'
 
 class Solaredge:
     """
-    Object containing SolarEdge's site API-methods.
+    Object containing SolarEdge's site API-methods, and some functions that return Pandas DataFrames
     See https://www.solaredge.com/sites/default/files/se_monitoring_api.pdf
     """
     def __init__(self, site_token):
@@ -32,7 +32,7 @@ class Solaredge:
     def get_list(self, size=100, start_index=0, search_text="", sort_property="",
                  sort_order='ASC', status='Active,Pending'):
         """
-        Request service locations
+        Request all sites
 
         Returns
         -------
@@ -62,7 +62,7 @@ class Solaredge:
     @functools.lru_cache(maxsize=128, typed=False)
     def get_details(self, site_id):
         """
-        Request service location info
+        Request details about a certain site
 
         Parameters
         ----------
@@ -83,7 +83,11 @@ class Solaredge:
     @functools.lru_cache(maxsize=128, typed=False)
     def get_data_period(self, site_id):
         """
-        Request data period
+        Request the data period for a certain site.
+        This returns the start and end dates for which there
+        is data available.
+
+        Use `get_data_period_parsed` to get the dates as datetime objects
 
         Parameters
         ----------
@@ -104,7 +108,9 @@ class Solaredge:
 
     def get_data_period_parsed(self, site_id):
         """
-        Get data period, parsed in datetime objects
+        Request the data period for a certain site.
+        This returns the start and end dates for which there
+        is data available, as datetime objects
 
         Parameters
         ----------
@@ -180,6 +186,27 @@ class Solaredge:
         return r.json()
 
     def get_energy_details(self, site_id, start_time, end_time, meters=None, time_unit="DAY"):
+        """
+        Request Energy Details for a specific site and timeframe
+
+        Use `get_energy_details_dataframe` to get the result as a Pandas DataFrame
+
+        Parameters
+        ----------
+        site_id : int
+        start_time : str
+            needs to have the format '%Y-%m-%d %H:%M:%S' ("2018-02-15 10:00:00")
+        end_time : str
+            see `start_time
+        meters : str`
+            TODO check this
+        time_unit : str
+            TODO list the possible time units
+
+        Returns
+        -------
+        dict
+        """
         url = urljoin(BASEURL, "site", site_id, "energyDetails")
         params = {
             'api_key': self.token,
@@ -198,6 +225,27 @@ class Solaredge:
         return j
 
     def get_energy_details_dataframe(self, site_id, start_time, end_time, meters=None, time_unit="DAY"):
+        """
+        Request Energy Details for a certain site and timeframe as a Pandas DataFrame
+
+        Parameters
+        ----------
+        site_id : int
+        start_time : str | dt.date | dt.datetime
+            Can be any date or datetime object (also pandas.Timestamp)
+            or a string with format '%Y-%m-%d %H:%M:%S' ("2018-02-15 10:00:00")
+            Timezone-naive objects will be treated as local time at the site
+        end_time : str | dt.date | dt.datetime
+            See `start_time`
+        meters : str
+            TODO Check this
+        time_unit : str
+            TODO check this
+
+        Returns
+        -------
+        pandas.DataFrame
+        """
         from .parsers import parse_energydetails
         tz = self.get_timezone(site_id=site_id)
         start_time, end_time = [self._fmt_date(date_obj=time, fmt='%Y-%m-%d %H:%M:%S', tz=tz) for time in [start_time, end_time]]
@@ -241,6 +289,17 @@ class Solaredge:
         return r.json()
 
     def get_timezone(self, site_id):
+        """
+        Get the timezone of a certain site (eg. 'Europe/Brussels')
+
+        Parameters
+        ----------
+        site_id : int
+
+        Returns
+        -------
+        str
+        """
         details = self.get_details(site_id=site_id)
         tz = details['details']['location']['timeZone']
         return tz
