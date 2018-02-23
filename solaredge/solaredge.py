@@ -3,6 +3,8 @@ import functools
 import pytz
 import dateutil.parser
 import datetime as dt
+from dateutil import rrule
+from .misc import urljoin, pairwise
 
 __title__ = "solaredge"
 __version__ = "0.0.1"
@@ -198,10 +200,15 @@ class Solaredge:
             needs to have the format '%Y-%m-%d %H:%M:%S' ("2018-02-15 10:00:00")
         end_time : str
             see `start_time
-        meters : str`
-            TODO check this
+        meters : str
+            default None
+            options: any combination of PRODUCTION, CONSUMPTION, SELFCONSUMPTION, FEEDIN, PURCHASED
+                separated by a comma. eg: "PRODUCTION,CONSUMPTION"
         time_unit : str
-            TODO list the possible time units
+            default DAY
+            options: QUARTER_OF_AN_HOUR, HOUR, DAY, WEEK, MONTH, YEAR
+            Note that QUARTER_OF_AN_HOUR and HOUR are restricted to one month of data,
+            DAY is restricted to one year of data, the others are unrestricted
 
         Returns
         -------
@@ -233,24 +240,41 @@ class Solaredge:
         site_id : int
         start_time : str | dt.date | dt.datetime
             Can be any date or datetime object (also pandas.Timestamp)
-            or a string with format '%Y-%m-%d %H:%M:%S' ("2018-02-15 10:00:00")
             Timezone-naive objects will be treated as local time at the site
         end_time : str | dt.date | dt.datetime
             See `start_time`
-        meters : str
-            TODO Check this
+        meters : [str]
+            default None
+            list with any combination of these terms: PRODUCTION, CONSUMPTION, SELFCONSUMPTION, FEEDIN, PURCHASED
         time_unit : str
-            TODO check this
+            default DAY
+            options: QUARTER_OF_AN_HOUR, HOUR, DAY, WEEK, MONTH, YEAR
+            Note that this method works around the usage restrictions by requesting chunks of data
 
         Returns
         -------
         pandas.DataFrame
         """
         from .parsers import parse_energydetails
+        import pandas as pd
+
         tz = self.get_timezone(site_id=site_id)
-        start_time, end_time = [self._fmt_date(date_obj=time, fmt='%Y-%m-%d %H:%M:%S', tz=tz) for time in [start_time, end_time]]
-        j = self.get_energy_details(site_id=site_id, start_time=start_time, end_time=end_time, meters=meters, time_unit=time_unit)
-        df = parse_energydetails(j)
+        if meters:
+            meters = ','.join(meters)
+
+        # use a generator to do some lazy loading and to (hopefully) save some memory when requesting large periods of time
+        def generate_frames():
+            # work around the usage restrictions by creating intervals to request data in
+            for start, end in self.intervalize(time_unit=time_unit, start=start_time, end=end_time):
+                # format start and end in the correct string notation
+                start, end = [self._fmt_date(date_obj=time, fmt='%Y-%m-%d %H:%M:%S', tz=tz) for time in [start, end]]
+                j = self.get_energy_details(site_id=site_id, start_time=start, end_time=end, meters=meters, time_unit=time_unit)
+                frame = parse_energydetails(j)
+                yield frame
+
+        frames = generate_frames()
+        df = pd.concat(frames)
+        df = df.drop_duplicates()
         df = df.tz_localize(tz)
         return df
 
@@ -328,34 +352,45 @@ class Solaredge:
         if hasattr(date_obj, 'tzinfo') and date_obj.tzinfo is not None:
             if tz is None:
                 raise ValueError('Please supply a target timezone')
-            date_obj = date_obj.astimezone(tz)
+            _tz = pytz.timezone(tz)
+            date_obj = date_obj.astimezone(_tz)
 
         return date_obj.strftime(fmt)
 
+    @staticmethod
+    def intervalize(time_unit, start, end):
+        """
+        Create pairs of start and end with regular intervals, to deal with usage restrictions on the API
+        e.g. requests with `time_unit="DAY"` are limited to 1 year, so when `start` and `end` are more
+        than 1 year apart, pairs of timestamps will be generated that respect this limit.
 
-def urljoin(*parts):
-    """
-    Join terms together with forward slashes
+        Parameters
+        ----------
+        time_unit : str
+            options: QUARTER_OF_AN_HOUR, HOUR, DAY, WEEK, MONTH, YEAR
+        start : dt.datetime | pd.Timestamp
+        end : dt.datetime | pd.Timestamp
 
-    Parameters
-    ----------
-    parts
+        Returns
+        -------
+        ((pd.Timestamp, pd.Timestamp))
+        """
+        import pandas as pd
 
-    Returns
-    -------
-    str
-    """
-    # first strip extra forward slashes (except http:// and the likes) and
-    # create list
-    part_list = []
-    for part in parts:
-        p = str(part)
-        if p.endswith('//'):
-            p = p[0:-1]
+        if time_unit in {"WEEK", "MONTH", "YEAR"}:
+            # no restrictions, so just return start and end
+            return [(start, end)]
+        elif time_unit == "DAY":
+            rule = rrule.YEARLY
+        elif time_unit in {"QUARTER_OF_AN_HOUR", "HOUR"}:
+            rule = rrule.MONTHLY
         else:
-            p = p.strip('/')
-        part_list.append(p)
-    # join everything together
-    url = '/'.join(part_list)
-    return url
+            raise ValueError('Unknown interval: {}. Choose from QUARTER_OF_AN_HOUR, HOUR, DAY, WEEK, MONTH, YEAR')
 
+        res = []
+        for day in rrule.rrule(rule, dtstart=start, until=end):
+            res.append(pd.Timestamp(day))
+        res.append(end)
+        res = sorted(set(res))
+        res = pairwise(res)
+        return res
