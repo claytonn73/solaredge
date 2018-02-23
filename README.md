@@ -8,7 +8,7 @@ See https://www.solaredge.com/sites/default/files/se_monitoring_api.pdf
 s = solaredge.Solaredge("APIKEY")
 ```
 
-## API Requests
+## Raw API Requests
 12 API requests are supported. The methods return the parsed JSON response as a dict.
 
 ```
@@ -16,7 +16,7 @@ def get_list(self, size=100, start_index=0, search_text="", sort_property="", so
 
 def get_details(self, site_id):
 
-def get_data_period(self, site_id, parsed=False):
+def get_data_period(self, site_id):
 
 def get_energy(self, site_id, start_date, end_date, time_unit='DAY'):
 
@@ -28,7 +28,7 @@ def get_overview(self, site_id):
 
 def get_power_details(self, site_id, start_time, end_time, meters=None):
 
-def get_energy_details(self, site_id, start_time, end_time, meters=None, time_unit="DAY", as_dataframe=False):
+def get_energy_details(self, site_id, start_time, end_time, meters=None, time_unit="DAY"):
 
 def get_current_power_flow(self, site_id):
 
@@ -37,8 +37,12 @@ def get_storage_data(self, site_id, start_time, end_time, serials=None):
 def get_inventory(self, site_id):
 ```
 
-`get_energy_details` can also return the result as a Pandas DataFrame
+## Parsed API Requests
+- `get_data_period_parsed`: Get start and end dates as datetime objects
+- `get_energy_details_dataframe`: Get energy details as a Pandas DataFrame.
+    This method deals with the API usage restrictions, allowing you to do bulk requests.
+- `get_timezone`: Get the IANA timezone of a site
 
 ## TODO
-* Add support for bulk requests
-* Add API documentation
+* Add API documentation for certain requests
+* Add more DataFrame parsers for other calls
