@@ -33,8 +33,8 @@ setup(
     description='A python API wrapper for Solaredge monitoring service',
     long_description=long_description,
     url='https://github.com/bertouttier/solaredge',
-    author='Bert Outtier',
-    author_email='outtierbert@gmail.com',
+    author='Bert Outtier, EnergieID',
+    author_email='jan@energieid.be',
     license='MIT',
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -59,6 +59,7 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
 
     keywords='solaredge data monitoring api',
