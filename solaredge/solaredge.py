@@ -7,7 +7,7 @@ from dateutil import rrule
 from .misc import urljoin, pairwise
 
 __title__ = "solaredge"
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 __author__ = "Bert Outtier, EnergieID"
 __license__ = "MIT"
 
@@ -120,12 +120,13 @@ class Solaredge:
 
         Returns
         -------
-        (dt.datetime, dt.datetime)
+        (pd.Timestamp, pd.Timestamp)
         """
+        import pandas as pd
         j = self.get_data_period(site_id=site_id)
-        tz = pytz.timezone(self.get_timezone(site_id=site_id))
-        start, end = [dateutil.parser.parse(j['dataPeriod'][param]) for param in ['startDate', 'endDate']]
-        start, end = start.astimezone(tz), end.astimezone(tz)
+        tz = self.get_timezone(site_id=site_id)
+        start, end = [pd.Timestamp(j['dataPeriod'][param]) for param in ['startDate', 'endDate']]
+        start, end = start.tz_localize(tz), end.tz_localize(tz)
         return start, end
 
     def get_energy(self, site_id, start_date, end_date, time_unit='DAY'):
