@@ -1,5 +1,5 @@
 # Solaredge
-API wrapper for Solaredge monitoring service.
+Python Client for Solaredge monitoring service.
 
 See https://www.solaredge.com/sites/default/files/se_monitoring_api.pdf
 
