@@ -1,16 +1,18 @@
+from typing import Dict, Iterable
 import pandas as pd
 
 
-def parse_energydetails(d):
-    def to_series(d):
-        for meter in d['energyDetails']['meters']:
+def parse_energydetails(d: Dict) -> pd.DataFrame:
+    def to_series(_d: Dict) -> Iterable[pd.Series]:
+        for meter in _d['energyDetails']['meters']:
             name = meter['type']
-            df = pd.DataFrame.from_dict(meter['values'])
-            df = df.set_index('date')
-            df.index = pd.DatetimeIndex(df.index)
-            if df.empty:
+            _df = pd.DataFrame.from_dict(meter['values'])
+            if _df.empty:
+                yield pd.Series(name=name)
                 continue
-            ts = df.value
+            _df = _df.set_index('date')
+            _df.index = pd.DatetimeIndex(_df.index)
+            ts = _df.value
             ts.name = name
             ts = ts.dropna()
             yield ts
