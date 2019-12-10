@@ -32,6 +32,7 @@ setup(
     version=__version__,
     description='A python API wrapper for Solaredge monitoring service',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     url='https://github.com/bertouttier/solaredge',
     author='Bert Outtier, EnergieID',
     author_email='jan@energieid.be',
