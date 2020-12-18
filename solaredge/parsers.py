@@ -12,6 +12,9 @@ def parse_energydetails(d: Dict) -> pd.DataFrame:
                 continue
             _df = _df.set_index('date')
             _df.index = pd.DatetimeIndex(_df.index)
+            if _df.empty:
+                yield pd.Series(name=name)
+                continue
             ts = _df.value
             ts.name = name
             ts = ts.dropna()

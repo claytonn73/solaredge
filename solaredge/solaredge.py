@@ -7,7 +7,7 @@ from dateutil import rrule
 from .misc import urljoin, pairwise
 
 __title__ = "solaredge"
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 __author__ = "Bert Outtier, EnergieID"
 __license__ = "MIT"
 
