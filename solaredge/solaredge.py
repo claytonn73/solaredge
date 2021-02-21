@@ -313,6 +313,18 @@ class Solaredge:
         r.raise_for_status()
         return r.json()
 
+    def get_inverter_details(self, site_id, inverter_id, start_time, end_time):
+        url = urljoin(BASEURL, "equipment", site_id, inverter_id, "data")
+        params = {
+            'api_key': self.token,
+            'startTime': start_time,
+            'endTime': end_time,
+        }
+
+        r = requests.get(url, params)
+        r.raise_for_status()
+        return r.json()
+
     def get_timezone(self, site_id):
         """
         Get the timezone of a certain site (eg. 'Europe/Brussels')
